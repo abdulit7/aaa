@@ -1,0 +1,459 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f3f4f6;
+  --card: #ffffff;
+  --ink: #1b1f24;
+  --muted: #5f6b7a;
+  --line: #dde1e6;
+  --brand: #14532d;
+  --in: #15803d;
+  --in-bg: #eaf6ee;
+  --out: #1d4ed8;
+  --out-bg: #e9effd;
+  --ok: #15803d;
+  --ok-bg: #e8f6ed;
+  --warn: #9a6700;
+  --warn-bg: #fdf6e3;
+  --bad: #b91c1c;
+  --bad-bg: #fdecec;
+}
+
+@layer base {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', "Segoe UI", system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Mobile-first comfortable form field sizes */
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px; /* 16px prevents iOS Safari from automatically zooming into inputs */
+    min-height: 46px; /* Touch-friendly tap target on mobile */
+    padding: 0.65rem 0.85rem;
+    line-height: 1.35;
+    border-radius: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  @media (min-width: 640px) {
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="search"],
+    select,
+    textarea {
+      font-size: 0.875rem; /* 14px on tablets & desktop */
+      min-height: 38px;
+      padding: 0.45rem 0.75rem;
+    }
+  }
+}
+
+/* Explicit Form Helper Classes */
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem; /* 14px on mobile for high legibility */
+  margin-bottom: 0.35rem;
+}
+
+@media (min-width: 640px) {
+  .form-label {
+    font-size: 0.8125rem; /* 13px on desktop */
+    margin-bottom: 0.25rem;
+  }
+}
+
+.form-input-lg {
+  width: 100%;
+  font-size: 1rem !important; /* 16px */
+  min-height: 48px !important;
+  padding: 0.7rem 0.9rem !important;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  border: 1px solid #c5ccd4;
+}
+
+@media (min-width: 640px) {
+  .form-input-lg {
+    font-size: 0.875rem !important;
+    min-height: 40px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+/* 3D Tactile Buttons with Real Depth */
+.btn-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.4, 1);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18), 0 5px 10px rgba(0, 0, 0, 0.08);
+}
+
+.btn-3d:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Material IN Green 3D Button */
+.btn-3d-in {
+  background-color: #15803d;
+  color: #ffffff;
+  border: 1px solid #14532d;
+  box-shadow: 0 4px 0 #0f5b2b, 0 6px 12px rgba(21, 128, 61, 0.25);
+}
+
+.btn-3d-in:hover {
+  background-color: #16a34a;
+}
+
+.btn-3d-in:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #0f5b2b, 0 2px 4px rgba(21, 128, 61, 0.2);
+}
+
+/* Purchase IN Teal 3D Button */
+.btn-3d-purchase {
+  background-color: #0f766e;
+  color: #ffffff;
+  border: 1px solid #115e59;
+  box-shadow: 0 4px 0 #134e4a, 0 6px 12px rgba(15, 118, 110, 0.25);
+}
+
+.btn-3d-purchase:hover {
+  background-color: #115e59;
+}
+
+.btn-3d-purchase:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #134e4a, 0 2px 4px rgba(15, 118, 110, 0.2);
+}
+
+/* Material OUT Blue 3D Button */
+.btn-3d-out {
+  background-color: #1d4ed8;
+  color: #ffffff;
+  border: 1px solid #1e40af;
+  box-shadow: 0 4px 0 #172554, 0 6px 12px rgba(29, 78, 216, 0.25);
+}
+
+.btn-3d-out:hover {
+  background-color: #2563eb;
+}
+
+.btn-3d-out:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #172554, 0 2px 4px rgba(29, 78, 216, 0.2);
+}
+
+/* Secondary White/Grey 3D Button */
+.btn-3d-sec {
+  background-color: #ffffff;
+  color: #1b1f24;
+  border: 1px solid #dde1e6;
+  box-shadow: 0 3px 0 #cbd5e1, 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.btn-3d-sec:hover {
+  background-color: #f8fafc;
+  color: #15803d;
+}
+
+.btn-3d-sec:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #cbd5e1, 0 2px 3px rgba(0, 0, 0, 0.03);
+}
+
+/* Red / Danger 3D Button */
+.btn-3d-bad {
+  background-color: #b91c1c;
+  color: #ffffff;
+  border: 1px solid #991b1b;
+  box-shadow: 0 4px 0 #7f1d1d, 0 6px 12px rgba(185, 28, 28, 0.2);
+}
+
+.btn-3d-bad:hover {
+  background-color: #dc2626;
+}
+
+.btn-3d-bad:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #7f1d1d, 0 2px 4px rgba(185, 28, 28, 0.15);
+}
+
+/* Card Styling matching html prototype */
+.gate-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.gate-card-in {
+  border-top: 5px solid var(--in);
+}
+
+.gate-card-out {
+  border-top: 5px solid var(--out);
+}
+
+/* Clean Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 6mm 6mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* When report preview modal is open, suppress the entire #root app shell */
+  body.report-preview-open #root,
+  body.report-preview-open aside,
+  body.report-preview-open header,
+  body.report-preview-open nav,
+  body.report-preview-open footer {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Hide app shell, sidebar, top header, buttons, close buttons and footers */
+  aside,
+  header,
+  nav,
+  footer,
+  button,
+  .no-print,
+  .report-modal-header,
+  .report-modal-footer,
+  .report-modal-close-btn {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Unset modal overlay constraints so ONLY the inner sheet prints cleanly */
+  .report-modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .report-modal-container {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .report-modal-viewport {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .report-sheet-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Official Ledger Register Sheet - Exact font, sizes & styles matching preview */
+  .official-register-sheet,
+  #official-register-sheet {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Plus Jakarta Sans', "Segoe UI", system-ui, -apple-system, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  #official-register-sheet h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 24px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    margin-bottom: 12px !important;
+  }
+
+  #official-register-sheet h1 span.font-extrabold {
+    font-weight: 800 !important;
+    font-size: 24px !important;
+  }
+
+  #official-register-sheet h1 span.font-normal {
+    font-weight: 400 !important;
+    font-size: 20px !important;
+  }
+
+  #official-register-sheet h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 15px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    text-align: center !important;
+    margin-bottom: 2px !important;
+  }
+
+  .official-register-sheet table,
+  #official-register-sheet table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 2px solid #000000 !important;
+    table-layout: fixed !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+  }
+
+  .official-register-sheet th,
+  #official-register-sheet th {
+    border: 1px solid #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    line-height: 1.25 !important;
+    padding: 5px 3px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .official-register-sheet td,
+  #official-register-sheet td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 10.5px !important;
+    line-height: 1.25 !important;
+    vertical-align: middle !important;
+    padding: 4px 5px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #official-register-sheet .font-mono,
+  #official-register-sheet td.font-mono,
+  #official-register-sheet th.font-mono {
+    font-family: 'JetBrains Mono', Consolas, monospace !important;
+    font-size: 10.5px !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  /* Printable report sheet occupies full print width with sharp contrast */
+  .printable-report-sheet {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .printable-report-sheet table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .printable-report-sheet th,
+  .printable-report-sheet td {
+    border-color: #000000 !important;
+    color: #000000 !important;
+  }
+
+  .printable-report-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

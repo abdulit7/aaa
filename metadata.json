@@ -1,0 +1,10 @@
+{
+  "name": "Remix Remix Remix Remix Remix GateMaster",
+  "description": "Enterprise Gate Register \u0026 Logistics Hub ,visualization, browser camera invoice capture, drag-and-drop dashboard, MySQL-ready storage, and PDF reporting.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

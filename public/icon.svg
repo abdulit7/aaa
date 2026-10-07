@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#052e16" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="108" fill="url(#bg-grad)"/>
+
+  <!-- Subtle grid pattern -->
+  <circle cx="256" cy="256" r="210" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2" fill="none"/>
+  <circle cx="256" cy="256" r="160" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2" fill="none"/>
+
+  <!-- Checkpoint Gate & Shield Graphic -->
+  <g filter="url(#shadow)">
+    <!-- Security Shield Outline -->
+    <path d="M256 90 L380 145 C380 270 330 350 256 410 C182 350 132 270 132 145 Z" fill="url(#shield-grad)"/>
+
+    <!-- Gate Posts & Boom Barrier inside shield -->
+    <!-- Left Guard Post -->
+    <rect x="180" y="220" width="22" height="110" rx="4" fill="#1e293b"/>
+    <!-- Right Guard Post -->
+    <rect x="310" y="220" width="22" height="110" rx="4" fill="#1e293b"/>
+
+    <!-- Barrier Pivot Hub -->
+    <circle cx="191" cy="245" r="14" fill="#0f172a"/>
+    <circle cx="191" cy="245" r="7" fill="#fbbf24"/>
+
+    <!-- Striped Gate Arm (Angled slightly up) -->
+    <g transform="rotate(-15 191 245)">
+      <rect x="191" y="239" width="130" height="12" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+      <!-- Red diagonal warning stripes -->
+      <polygon points="210,239 222,239 216,251 204,251" fill="#dc2626"/>
+      <polygon points="235,239 247,239 241,251 229,251" fill="#dc2626"/>
+      <polygon points="260,239 272,239 266,251 254,251" fill="#dc2626"/>
+      <polygon points="285,239 297,239 291,251 279,251" fill="#dc2626"/>
+      <polygon points="310,239 319,239 313,251 304,251" fill="#dc2626"/>
+    </g>
+
+    <!-- Up/Down Material Direction Badges -->
+    <circle cx="230" cy="180" r="16" fill="#15803d"/>
+    <path d="M230 172 L237 179 L233 179 L233 188 L227 188 L227 179 L223 179 Z" fill="#ffffff"/>
+
+    <circle cx="282" cy="180" r="16" fill="#1d4ed8"/>
+    <path d="M282 188 L275 181 L279 181 L279 172 L285 172 L285 181 L289 181 Z" fill="#ffffff"/>
+  </g>
+
+  <!-- Bottom Brand Text -->
+  <text x="256" y="465" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="34" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="3">GATEMASTER</text>
+</svg>
