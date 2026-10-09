@@ -9,24 +9,38 @@ import { mysqlRouter } from './mysql.routes.js';
 import { uploadRouter } from './upload.routes.js';
 import { notificationsRouter } from './notifications.routes.js';
 import { MySQLController } from '../controllers/mysql.controller.js';
+import { UsersController } from '../controllers/users.controller.js';
+import { SettingsController } from '../controllers/settings.controller.js';
+import { requireAuth, requireRole, AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { isMySQLConnected } from '../mysqlClient.js';
 import { errorHandler } from '../middleware/error.middleware.js';
 
 export const apiRouter = Router();
 
-// Modular REST Sub-Routers
-apiRouter.use('/auth', authRouter);
+// ---- PUBLIC (needed before login) ----
+apiRouter.use('/auth', authRouter);                               // login / refresh (logout, me use requireAuth inside)
+apiRouter.get('/users/locations', UsersController.getLocations);  // only if your login screen needs it
+apiRouter.get('/settings', SettingsController.get);               // app name / logo on the login page
+
+// ---- EVERYTHING BELOW NEEDS A VALID SESSION ----
+apiRouter.use(requireAuth);
+
 apiRouter.use('/entries', entriesRouter);
 apiRouter.use('/dashboard', dashboardRouter);
-apiRouter.use('/users', usersRouter);
-apiRouter.use('/settings', settingsRouter);
-apiRouter.use('/audit', auditRouter);
-apiRouter.use('/mysql', mysqlRouter);
-apiRouter.use('/upload', uploadRouter);
 apiRouter.use('/notifications', notificationsRouter);
+apiRouter.use('/upload', uploadRouter);
+apiRouter.use('/users', usersRouter);
+apiRouter.use('/settings', settingsRouter);                       // PUT/POST are admin-only inside
+apiRouter.use('/audit', auditRouter);
 
-// Database Health & Reconnect Direct Aliases for Client Compatibility
-apiRouter.get('/db-status', MySQLController.getDbStatus);
-apiRouter.post('/db-reconnect', MySQLController.reconnectDb);
+// DB status: the header polls this for every user. Admins get details, everyone else only connected true/false.
+apiRouter.get('/db-status', (req, res) => {
+  if ((req as AuthenticatedRequest).user?.role === 'admin') return MySQLController.getDbStatus(req, res);
+  res.json({ connected: isMySQLConnected() });
+});
 
-// Global REST Error Handler
+// ---- ADMIN ONLY ----
+apiRouter.use('/mysql', requireRole(['admin']), mysqlRouter);
+apiRouter.post('/db-reconnect', requireRole(['admin']), MySQLController.reconnectDb);
+
 apiRouter.use(errorHandler);

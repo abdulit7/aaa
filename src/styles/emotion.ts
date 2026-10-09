@@ -5,28 +5,28 @@ export const Card3D = styled.div<{ variant?: 'in' | 'out' | 'return' | 'purchase
   position: relative;
   background: #ffffff;
   border: 1px solid #dde1e6;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: all 0.16s ease;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px rgba(16, 24, 40, 0.05);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
 
   ${props => props.variant === 'in' && css`
-    border-top: 5px solid #15803d;
+    border-top: 4px solid #15803d;
   `}
 
   ${props => props.variant === 'purchase' && css`
-    border-top: 5px solid #0f766e;
+    border-top: 4px solid #0f766e;
   `}
 
   ${props => props.variant === 'out' && css`
-    border-top: 5px solid #1d4ed8;
+    border-top: 4px solid #1d4ed8;
   `}
 
   ${props => props.variant === 'return' && css`
-    border-top: 5px solid #d97706;
+    border-top: 4px solid #d97706;
   `}
 
   ${props => props.variant === 'interbranch' && css`
-    border-top: 5px solid #4f46e5;
+    border-top: 4px solid #4f46e5;
   `}
 
   ${props => props.hoverLift && css`
@@ -150,7 +150,7 @@ export const Button3D = styled.button<{
   justify-content: center;
   gap: 0.5rem;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   user-select: none;
   text-decoration: none;
@@ -162,7 +162,7 @@ export const Button3D = styled.button<{
         return css`
           padding: 8px 14px;
           font-size: 0.875rem;
-          min-height: 40px;
+          min-height: 44px;
           box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
           @media (min-width: 640px) {
             padding: 6px 12px;
@@ -206,7 +206,7 @@ export const Button3D = styled.button<{
         return css`
           padding: 11px 18px;
           font-size: 0.95rem;
-          min-height: 44px;
+          min-height: 48px;
           box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
           @media (min-width: 640px) {
             padding: 9px 18px;
@@ -228,7 +228,7 @@ export const Button3D = styled.button<{
           background-color: #15803d;
           color: #ffffff;
           border: 1px solid #14532d;
-          box-shadow: 0 4px 0 #0f5b2b;
+          box-shadow: 0 3px 0 #0f5b2b;
           &:hover {
             background-color: #16a34a;
           }
@@ -241,7 +241,7 @@ export const Button3D = styled.button<{
           background-color: #0f766e;
           color: #ffffff;
           border: 1px solid #115e59;
-          box-shadow: 0 4px 0 #134e4a;
+          box-shadow: 0 3px 0 #134e4a;
           &:hover {
             background-color: #115e59;
           }
@@ -254,7 +254,7 @@ export const Button3D = styled.button<{
           background-color: #1d4ed8;
           color: #ffffff;
           border: 1px solid #1e40af;
-          box-shadow: 0 4px 0 #172554;
+          box-shadow: 0 3px 0 #172554;
           &:hover {
             background-color: #2563eb;
           }
@@ -267,7 +267,7 @@ export const Button3D = styled.button<{
           background-color: #b91c1c;
           color: #ffffff;
           border: 1px solid #991b1b;
-          box-shadow: 0 4px 0 #7f1d1d;
+          box-shadow: 0 3px 0 #7f1d1d;
           &:hover {
             background-color: #dc2626;
           }
@@ -280,7 +280,7 @@ export const Button3D = styled.button<{
           background-color: #14532d;
           color: #ffffff;
           border: 1px solid #0f3d21;
-          box-shadow: 0 4px 0 #092614;
+          box-shadow: 0 3px 0 #092614;
           &:hover {
             background-color: #166534;
           }
@@ -315,9 +315,9 @@ export const Button3D = styled.button<{
 
 export const StatusBadge = styled.span<{ variant: 'in' | 'out' | 'ok' | 'warn' | 'bad' | 'mut' }>`
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 99px;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
   line-height: 1.4;
@@ -383,10 +383,6 @@ export const KpiCard = styled.div<{ alert?: 'warn' | 'bad' }>`
     }
   `}
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.07);
-  }
 `;
 
 export const StageColumn = styled.div<{ isOver?: boolean }>`

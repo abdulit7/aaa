@@ -298,7 +298,7 @@ export const MaterialReturnPage: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="gm-form space-y-4">
         <Card3D className="p-4 sm:p-6 space-y-4 border-t-4 border-[#0f766e]">
           {/* STEP 1: PICK PREVIOUS DISPATCHED OUT ITEM (SEARCH & SELECT FIELD) */}
           <div ref={dropdownRef} className="relative">

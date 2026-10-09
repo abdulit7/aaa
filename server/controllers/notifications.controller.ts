@@ -1,46 +1,38 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { db } from '../db.js';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { effectiveLocation } from '../utils/scope.js';
+
+// Only notifications targeted at the user's own location (admins may pick one, or see all).
+function forUser(req: AuthenticatedRequest, unreadOnly: boolean) {
+  const loc = effectiveLocation(req.user!, req.query.location as string);
+  const all = db.getNotifications(undefined as any, unreadOnly);
+  if (!loc) return all;
+  const l = loc.toLowerCase().trim();
+  return all.filter(n => {
+    const t = (n.target_location || '').toLowerCase().trim();
+    return t === l || t === 'all';
+  });
+}
 
 export class NotificationsController {
-  public static list(req: Request, res: Response) {
-    try {
-      const location = req.query.location as string;
-      const unreadOnly = req.query.unread === 'true';
-      const list = db.getNotifications(location, unreadOnly);
-      res.json(list);
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message || 'Failed to list notifications' });
-    }
+  static list(req: AuthenticatedRequest, res: Response) {
+    res.json(forUser(req, req.query.unread === 'true'));
   }
 
-  public static markRead(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const success = db.markNotificationRead(id);
-      res.json({ success });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message || 'Failed to mark notification read' });
-    }
+  static getUnreadCount(req: AuthenticatedRequest, res: Response) {
+    res.json({ count: forUser(req, true).length });
   }
 
-  public static markAllRead(req: Request, res: Response) {
-    try {
-      const location = req.query.location as string || req.body.location;
-      const success = db.markAllNotificationsRead(location);
-      res.json({ success });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message || 'Failed to mark all notifications read' });
-    }
+  static markRead(req: AuthenticatedRequest, res: Response) {
+    const mine = forUser(req, false).some(n => n.id === req.params.id);
+    if (!mine) return res.status(403).json({ success: false, error: 'Not your notification' });
+    res.json({ success: db.markNotificationRead(req.params.id) });
   }
 
-  public static getUnreadCount(req: Request, res: Response) {
-    try {
-      const location = req.query.location as string;
-      const list = db.getNotifications(location, true);
-      res.json({ count: list.length });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
-    }
+  static markAllRead(req: AuthenticatedRequest, res: Response) {
+    const ids = forUser(req, true).map(n => n.id);
+    ids.forEach(id => db.markNotificationRead(id));
+    res.json({ success: true, count: ids.length });
   }
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../db.js';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { canSee } from '../utils/scope.js';
 
 export class EntriesController {
   public static async list(req: Request, res: Response) {
@@ -20,8 +21,26 @@ export class EntriesController {
         entries = entries.filter(e => e.gate === String(gate));
       }
 
-      if (location && String(location) !== 'ALL') {
-        entries = entries.filter(e => e.location === String(location));
+      // Branch-aware filter: an entry belongs to the branch that created it (location / from_branch)
+      // AND to the branch it is going to (to_branch). Non-admins are always limited to their own branch.
+      {
+        const reqUser = (req as AuthenticatedRequest).user;
+        const wanted = reqUser && reqUser.role !== 'admin'
+          ? reqUser.location
+          : (location && String(location) !== 'ALL' ? String(location) : undefined);
+        if (wanted) {
+          const l = String(wanted).trim().toLowerCase();
+          entries = entries.filter(e =>
+            [e.location, e.from_branch, e.to_branch].some(x => (x || '').trim().toLowerCase() === l)
+          );
+        }
+      }
+
+      // ?in_process=true -> only inter-branch transfers that are still open
+      if (String(req.query.in_process) === 'true') {
+        const OPEN = ['in_transit', 'pending_return', 'return_in_transit'];
+        entries = entries.filter(e =>
+          !e.cancelled && OPEN.includes(String(e.inter_branch_details?.status || '').toLowerCase()));
       }
 
       if (stage) {
@@ -93,6 +112,10 @@ export class EntriesController {
       if (!entry) {
         return res.status(404).json({ success: false, error: 'Entry not found' });
       }
+      const viewer = (req as AuthenticatedRequest).user;
+      if (viewer && !canSee(viewer, entry)) {
+        return res.status(403).json({ success: false, error: 'This entry belongs to another branch' });
+      }
       const photos = db.getPhotosForEntry(entry.id);
       const audit = db.getAuditLogs(code);
       res.json({ entry, photos, audit });
@@ -163,12 +186,29 @@ export class EntriesController {
       }
 
       const assignedGate = (gate && String(gate).trim()) || user.gate || 'Main Gate';
-      const assignedLocation = (req.body.location && String(req.body.location).trim()) || user.location || 'Estate 1';
+      const assignedLocation = user.role === 'admin'
+        ? ((req.body.location && String(req.body.location).trim()) || user.location || 'Estate 1')
+        : (user.location || 'Estate 1');
       const assignedDeviceType = req.body.device_type || user.device_type || 'web';
 
       const isInterLocation = movement_type === 'Inter-Location Transfer' || movement_type === 'Inter-Branch Transfer';
-      const actualFromBranch = from_branch || (isInterLocation ? assignedLocation : undefined);
-      const actualToBranch = to_branch || (isInterLocation ? party.trim() : undefined);
+      const actualFromBranch = user.role === 'admin'
+        ? (from_branch || (isInterLocation ? assignedLocation : undefined))
+        : (isInterLocation ? assignedLocation : undefined);
+      let actualToBranch = to_branch || (isInterLocation ? party.trim() : undefined);
+
+      if (isInterLocation) {
+        // Match the destination to a real branch (case-insensitive) so the other branch actually sees it.
+        const wantedTo = String(actualToBranch || '').trim().toLowerCase();
+        const match = db.getFacilityLocations().find((l: any) => String(l.name).trim().toLowerCase() === wantedTo);
+        if (!match) {
+          return res.status(400).json({ success: false, error: `Destination branch '${actualToBranch || ''}' was not found. Choose a registered branch.` });
+        }
+        actualToBranch = match.name;
+        if (String(actualToBranch).trim().toLowerCase() === String(actualFromBranch || '').trim().toLowerCase()) {
+          return res.status(400).json({ success: false, error: 'Destination branch must be different from your own branch.' });
+        }
+      }
 
       const interBranchData = (isInterLocation || inter_branch_details)
         ? (inter_branch_details || {
@@ -365,8 +405,8 @@ export class EntriesController {
     if (!user) return res.status(401).json({ success: false, error: 'Not authenticated' });
 
     try {
-      const updated = await db.dispatchInterBranchReturn(req.params.code, req.body, user);
-      res.json(updated);
+      await db.dispatchInterBranchReturn(req.params.code, req.body, user);
+      res.json(await db.getEntryByCode(req.params.code));   // entry, not the gate-pass record
     } catch (err: any) {
       res.status(400).json({ success: false, error: err.message || 'Failed to dispatch inter-branch return' });
     }
@@ -377,8 +417,8 @@ export class EntriesController {
     if (!user) return res.status(401).json({ success: false, error: 'Not authenticated' });
 
     try {
-      const updated = await db.receiveInterBranchReturn(req.params.code, req.body, user);
-      res.json(updated);
+      await db.receiveInterBranchReturn(req.params.code, req.body, user);
+      res.json(await db.getEntryByCode(req.params.code));   // entry, not the gate-pass record
     } catch (err: any) {
       res.status(400).json({ success: false, error: err.message || 'Failed to receive returned inter-branch material' });
     }

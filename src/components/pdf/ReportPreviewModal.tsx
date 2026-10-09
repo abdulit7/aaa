@@ -294,6 +294,9 @@ export const ReportPreviewModal: React.FC<ReportPreviewModalProps> = ({
 
           {/* Document Content Viewport */}
           <div className="report-modal-viewport flex-1 overflow-y-auto p-3 sm:p-6 bg-slate-200/80">
+            <p className="sm:hidden mb-2 pr-10 text-xs text-slate-700">
+              Swipe sideways to read the whole register. Use Print or Save PDF for the full-size page.
+            </p>
             <div className="report-sheet-wrapper bg-white shadow-lg border border-slate-300 p-2 sm:p-6 rounded-lg max-w-[1050px] mx-auto overflow-x-auto">
               <OfficialRegisterSheet
                 entries={entries}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -16,29 +16,6 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Auto-login mobile users so they do not have to perform web login
-  useEffect(() => {
-    const isMobile = typeof window !== 'undefined' && (
-      window.innerWidth < 768 ||
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    );
-    if (isMobile) {
-      handleMobileQuickEnter();
-    }
-  }, []);
-
-  const handleMobileQuickEnter = async () => {
-    setIsSubmitting(true);
-    setError(null);
-    const result = await login('guard', 'guard123', 'Mobile Terminal', 'tablet');
-    setIsSubmitting(false);
-    if (result.success) {
-      navigate('/');
-    } else {
-      setError(result.error || 'Failed to auto-sign in mobile terminal.');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,61 +101,6 @@ export const LoginPage: React.FC = () => {
             </motion.div>
           </form>
 
-          {/* Location-Based Quick Login Chips */}
-          <div className="pt-4 border-t border-slate-200 space-y-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Multi-Location Test Accounts (Click to Fill):
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('admin');
-                  setPassword('admin123');
-                }}
-                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="font-bold text-emerald-900">admin</div>
-                <div className="text-[10px] text-emerald-700">Estate 1 · Admin</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('guard01');
-                  setPassword('guard123');
-                }}
-                className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="font-bold text-blue-900">guard01 (Ahmed Khan)</div>
-                <div className="text-[10px] text-blue-700">Estate 1 · Security</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('guard02');
-                  setPassword('guard123');
-                }}
-                className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="font-bold text-purple-900">guard02 (Bilal)</div>
-                <div className="text-[10px] text-purple-700">Estate 2 · Security</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('guard03');
-                  setPassword('guard123');
-                }}
-                className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-left transition-colors cursor-pointer"
-              >
-                <div className="font-bold text-amber-900">guard03 (Imran)</div>
-                <div className="text-[10px] text-amber-700">Kamonki · Security</div>
-              </button>
-            </div>
-          </div>
         </Card3D>
       </div>
     </PageMotion>

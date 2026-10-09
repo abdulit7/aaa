@@ -1,0 +1,138 @@
+/* GateMaster form + report polish.
+   Loaded after your main stylesheet. Only touches elements inside .gm-form / .gm-fields,
+   plus the .gm-section and .gm-actionbar helpers, so the rest of the app is unchanged. */
+
+:root {
+  --gm-ink: #1b1f24;
+  --gm-muted: #5f6b7a;
+  --gm-line: #dde1e6;
+  --gm-field-line: #b9c2cc;
+  --gm-readonly: #f1f4f7;
+  --gm-focus: #2563eb;
+  --gm-accent: #15803d;
+  --gm-control-h: 50px;      /* thumb-friendly on phones */
+}
+@media (min-width: 768px) {
+  :root { --gm-control-h: 42px; }
+}
+
+/* ---------- Labels: sentence case, readable, never shouting ---------- */
+.gm-form .form-label,
+.gm-fields .form-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.3;
+}
+
+/* ---------- Inputs ---------- */
+.gm-form :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select),
+.gm-fields :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select) {
+  min-height: var(--gm-control-h);
+  font-size: 16px;                 /* stops iOS from zooming the page on focus */
+  border-color: var(--gm-field-line);
+  border-radius: 10px;
+}
+.gm-form textarea,
+.gm-fields textarea {
+  font-size: 16px;
+  min-height: 5.5rem;
+  border-color: var(--gm-field-line);
+  border-radius: 10px;
+  line-height: 1.45;
+}
+.gm-form :where(input, select, textarea)::placeholder,
+.gm-fields :where(input, select, textarea)::placeholder {
+  color: #8a96a3;
+}
+.gm-form :where(input, select, textarea):focus,
+.gm-fields :where(input, select, textarea):focus {
+  border-color: var(--gm-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  outline: none;
+}
+.gm-form :where(input, textarea)[readonly],
+.gm-fields :where(input, textarea)[readonly] {
+  background: var(--gm-readonly);
+  color: #334155;
+}
+.gm-form input[type="checkbox"],
+.gm-form input[type="radio"],
+.gm-fields input[type="checkbox"],
+.gm-fields input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ---------- Section titles (one coloured bar = which flow you are in) ---------- */
+.gm-section {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--gm-line);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gm-ink);
+  line-height: 1.2;
+}
+.gm-section::before {
+  content: "";
+  flex: none;
+  width: 4px;
+  height: 1.15em;
+  border-radius: 2px;
+  background: var(--gm-accent);
+}
+.gm-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.gm-section small {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--gm-muted);
+}
+.gm-out      { --gm-accent: #1d4ed8; }
+.gm-purchase { --gm-accent: #0f766e; }
+.gm-return   { --gm-accent: #d97706; }
+.gm-transfer { --gm-accent: #4f46e5; }
+
+/* ---------- Pinned action bar on phones (the Save button is always in reach) ---------- */
+.gm-actionbar { display: flex; gap: 0.5rem; }
+@media (max-width: 767px) {
+  .gm-form div:has(> button[type="submit"]),
+  .gm-actionbar {
+    position: sticky;
+    bottom: 0.5rem;
+    z-index: 20;
+    padding: 0.6rem;
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid var(--gm-line);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14);
+  }
+  .gm-form div:has(> button[type="submit"]) { border-top: 1px solid var(--gm-line); }
+  .gm-actionbar > * { flex: 1 1 0; min-width: 0; }
+}
+
+/* ---------- Keyboard focus everywhere ---------- */
+:where(button, a, [role="button"]):focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

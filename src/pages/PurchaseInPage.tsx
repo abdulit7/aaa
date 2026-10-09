@@ -375,8 +375,9 @@ export const PurchaseInPage: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+      <form onSubmit={handleSubmit} className="gm-form space-y-4 sm:space-y-5">
         <Card3D variant="purchase" className="p-3.5 sm:p-6 space-y-4 sm:space-y-5 border-2 border-[#0f766e]">
+          <div className="gm-section gm-purchase">Entry details</div>
           {/* Row 1: Entry Code & Duty Guard Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
@@ -408,6 +409,7 @@ export const PurchaseInPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="gm-section gm-purchase">Purpose and supplier</div>
           {/* Row 2: Purpose & Dynamic Purpose Fields */}
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -502,6 +504,7 @@ export const PurchaseInPage: React.FC = () => {
             )}
           </div>
 
+          <div className="gm-section gm-purchase">Delivery</div>
           {/* Row 3: Material Brought By & Document Type */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
@@ -630,6 +633,7 @@ export const PurchaseInPage: React.FC = () => {
             </div>
           )}
 
+          <div className="gm-section gm-purchase">Bill details</div>
           {/* Row 4: Invoice / Bill / Bilty Number & Bill Amount */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
@@ -792,6 +796,7 @@ export const PurchaseInPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="gm-section gm-purchase">Received by and notes</div>
           {/* Row 6: Received By & Remarks */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-2 border-t border-[#dde1e6]">
             <div>

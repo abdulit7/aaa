@@ -36,7 +36,7 @@ interface DbStatus {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
-  const { user, switchActiveLocation } = useAuth();
+  const { user, switchActiveLocation, isAdmin } = useAuth();
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [dbStatus, setDbStatus] = useState<DbStatus | null>(null);
@@ -222,15 +222,17 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-300" />
             <span>
-              <strong>MySQL Database Offline:</strong> Direct database connection required. Saving to JSON & Offline IndexedDB are disabled.
+              {isAdmin ? (<><strong>Database offline.</strong> Entries cannot be saved until it reconnects.</>) : (<><strong>System offline.</strong> Entries cannot be saved right now. Tell your supervisor.</>)}
             </span>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="underline font-bold hover:text-amber-200 transition-colors cursor-pointer text-xs"
-          >
-            Configure & Reconnect →
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="underline font-bold hover:text-amber-200 transition-colors cursor-pointer text-xs"
+            >
+              Configure and reconnect
+            </button>
+          )}
         </div>
       )}
 
@@ -249,24 +251,25 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             {/* Assigned Gate Badge */}
             <span className="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-300 flex items-center gap-1.5 shadow-2xs" title="Terminal Gate">
               <span>🚪</span>
-              <span className="uppercase tracking-wide font-extrabold">{user?.gate || 'Main Gate'}</span>
+              <span className="font-bold">{user?.gate || 'Main Gate'}</span>
             </span>
 
             {/* Interactive Location Badge / Switcher */}
             <div className="relative" ref={locationPickerRef}>
               <button
                 type="button"
-                onClick={() => setShowLocationPicker(!showLocationPicker)}
-                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-300 flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
-                title="Active Location · Click to switch location"
+                onClick={() => isAdmin && setShowLocationPicker(!showLocationPicker)}
+                disabled={!isAdmin}
+                className="px-2.5 py-1 rounded bg-slate-100 enabled:hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-300 flex items-center gap-1.5 enabled:cursor-pointer disabled:cursor-default transition-colors"
+                title={isAdmin ? 'Your branch. Click to view another branch' : 'Your branch'}
               >
                 <span>📍</span>
                 <span className="font-semibold">{user?.location || 'Estate 1'}</span>
-                <ChevronDown className="h-3 w-3 text-slate-500" />
+                {isAdmin && <ChevronDown className="h-3 w-3 text-slate-500" />}
               </button>
 
               <AnimatePresence>
-                {showLocationPicker && (
+                {isAdmin && showLocationPicker && (
                   <motion.div
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -327,7 +330,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
                   exit={{ opacity: 0, scale: 0.95, y: 5 }}
                   className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden"
                 >
-                  <div className="p-3 bg-gradient-to-r from-emerald-800 to-teal-800 text-white flex items-center justify-between">
+                  <div className="p-3 bg-[#14532d] text-white flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Bell className="h-4 w-4 text-emerald-300" />
                       <div>
@@ -416,7 +419,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             <span className="text-[10px] font-semibold text-slate-500 capitalize">{user?.role}</span>
           </div>
           {/* Live MySQL Database Connection Status Indicator */}
-          {dbStatus && (
+          {isAdmin && dbStatus && (
             <button
               type="button"
               onClick={() => setShowModal(true)}
@@ -455,7 +458,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
 
       {/* MySQL Connection Management Modal */}
       <AnimatePresence>
-        {showModal && (
+        {isAdmin && showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}

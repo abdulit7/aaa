@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { Home, ShoppingBag, ArrowUpRight, Undo2, ClipboardList, Clock, Printer, BarChart3, Users, Settings } from 'lucide-react';
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -47,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
     onCloseMobile();
   };
 
-  const NavItem = ({ to, label, icon, badge, color }: { to: string; label: string; icon: string; badge?: string; color?: string }) => {
+  const NavItem = ({ to, label, icon, badge }: { to: string; label: string; icon: React.ReactNode; badge?: string }) => {
     const active = isActive(to);
     return (
       <Link
@@ -60,21 +61,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <span className="text-base">{icon}</span>
+          <span className="flex h-5 w-5 items-center justify-center" aria-hidden>{icon}</span>
           <span>{label}</span>
         </div>
         {badge && (
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              badge === 'IN'
-                ? 'bg-[#eaf6ee] text-[#15803d]'
-                : badge === 'PURCHASE'
-                ? 'bg-teal-100 text-teal-800'
-                : badge === 'OUT'
-                ? 'bg-[#e9effd] text-[#1d4ed8]'
-                : 'bg-white/20 text-white'
-            }`}
-          >
+          <span className="min-w-[1.4rem] rounded-full bg-amber-400 px-1.5 py-0.5 text-center text-[11px] font-bold text-[#14532d]">
             {badge}
           </span>
         )}
@@ -117,16 +108,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
 
       {/* Navigation Links */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        <NavItem to="/" label="Home" icon="🏠" />
-        <NavItem to="/purchase-in" label="Purchase" icon="🛍️" badge="PURCHASE" />
-        <NavItem to="/out" label="Material OUT" icon="⬆" badge="OUT" />
-        <NavItem to="/return" label="Returning Back" icon="🔄" badge="RET" />
-        <NavItem to="/register" label="Register" icon="📋" />
-        <NavItem to="/pending" label="Pending" icon="⏳" />
-        <NavItem to="/settings/printer" label="Bluetooth Printer" icon="🖨️" />
-        {isSupervisor && <NavItem to="/reports" label="Summary & Reports" icon="📊" />}
-        {isAdmin && <NavItem to="/users" label="Users & Locations" icon="👥" />}
-        {isAdmin && <NavItem to="/admin" label="Admin" icon="⚙️" />}
+        <NavItem to="/" label="Home" icon={<Home size={18} />} badge={inwardCount > 0 ? String(inwardCount) : undefined} />
+        <NavItem to="/purchase-in" label="Purchase" icon={<ShoppingBag size={18} />} />
+        <NavItem to="/out" label="Material out" icon={<ArrowUpRight size={18} />} />
+        <NavItem to="/return" label="Returns" icon={<Undo2 size={18} />} />
+        <NavItem to="/register" label="Register" icon={<ClipboardList size={18} />} />
+        <NavItem to="/pending" label="Pending" icon={<Clock size={18} />} />
+        <NavItem to="/settings/printer" label="Printer" icon={<Printer size={18} />} />
+        {isSupervisor && <NavItem to="/reports" label="Reports" icon={<BarChart3 size={18} />} />}
+        {isAdmin && <NavItem to="/users" label="Users" icon={<Users size={18} />} />}
+        {isAdmin && <NavItem to="/admin" label="Admin" icon={<Settings size={18} />} />}
       </div>
 
       {/* User Info & Footer */}
@@ -144,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
               onClick={onCloseMobile}
               className="text-emerald-200 hover:text-white text-[11px] underline"
             >
-              Password
+              Change password
             </Link>
             <button
               onClick={logout}

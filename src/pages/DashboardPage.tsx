@@ -29,6 +29,7 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [entries, setEntries] = useState<GateEntry[]>([]);
+  const [transfers, setTransfers] = useState<GateEntry[]>([]); // inter-branch transfers still in process
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'today'>('all');
 
@@ -36,10 +37,15 @@ export const DashboardPage: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, entriesRes] = await Promise.all([
+      const [statsRes, entriesRes, transfersRes] = await Promise.all([
         fetch(`/api/dashboard/stats?location=${encodeURIComponent(userLocation)}`),
-        fetch(`/api/entries?limit=50&location=${encodeURIComponent(userLocation)}`)
+        fetch(`/api/entries?limit=50&location=${encodeURIComponent(userLocation)}`),
+        fetch(`/api/entries?in_process=true&location=${encodeURIComponent(userLocation)}`)
       ]);
+      if (transfersRes.ok) {
+        const t = await transfersRes.json();
+        setTransfers(Array.isArray(t) ? t : []);
+      }
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
@@ -219,7 +225,7 @@ export const DashboardPage: React.FC = () => {
                 </span>
               </div>
               <div className="text-xs text-slate-500">
-                Live dispatch & inward alerts for transfers scheduled, dispatched, or arriving at <strong>{userLocation}</strong>
+                Transfers still in process for <strong>{userLocation}</strong>. Completed ones move to Register and Gate Entries.
               </div>
             </div>
           </div>
@@ -237,8 +243,10 @@ export const DashboardPage: React.FC = () => {
 
         {(() => {
           // Find all inter-location entries for this user's location
-          const interLocationEntries = entries.filter(e => {
+          const interLocationEntries = transfers.filter(e => {
             if (e.cancelled) return false;
+            // Completed transfers leave this box (they stay in Register and Gate Entries)
+            if (!['in_transit', 'pending_return', 'return_in_transit'].includes(String(e.inter_branch_details?.status || '').toLowerCase())) return false;
             const isInter = e.movement_type === 'Inter-Location Transfer' || e.movement_type === 'Inter-Branch Transfer' || e.inter_branch_details;
             if (!isInter) return false;
             const loc = userLocation.toLowerCase();
@@ -251,7 +259,7 @@ export const DashboardPage: React.FC = () => {
             return (
               <div className="p-6 text-center text-slate-400 bg-white/80 rounded-xl border border-dashed border-slate-300 text-xs space-y-1">
                 <Building2 className="w-8 h-8 mx-auto text-slate-300" />
-                <p className="font-bold text-slate-700">No Inter-Location Alerts for {userLocation}</p>
+                <p className="font-bold text-slate-700">No open Inter-Location transfers for {userLocation}</p>
                 <p className="text-[11px] text-slate-500">
                   When someone creates an inter-location material transfer for or from {userLocation}, instant notifications appear here.
                 </p>
@@ -317,7 +325,13 @@ export const DashboardPage: React.FC = () => {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                            {e.stage ? e.stage.replace('_', ' ').toUpperCase() : 'REGISTERED'}
+                            {(() => {
+                              const st = String(e.inter_branch_details?.status || '').toLowerCase();
+                              if (st === 'in_transit') return isOutgoing ? 'IN TRANSIT' : 'TO RECEIVE';
+                              if (st === 'pending_return') return isOutgoing ? 'AT DESTINATION' : 'RETURN PENDING';
+                              if (st === 'return_in_transit') return isOutgoing ? 'RETURN ARRIVING' : 'RETURN SENT';
+                              return 'REGISTERED';
+                            })()}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-right">
@@ -326,7 +340,13 @@ export const DashboardPage: React.FC = () => {
                             onClick={() => navigate(`/e/${e.code}`)}
                             className="px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-blue-50 text-blue-700 border border-blue-300 rounded shadow-2xs transition-colors cursor-pointer"
                           >
-                            Open Details →
+                            {(() => {
+                              const st = String(e.inter_branch_details?.status || '').toLowerCase();
+                              if (!isOutgoing && st === 'in_transit') return 'Receive →';
+                              if (!isOutgoing && st === 'pending_return') return 'Send Back →';
+                              if (isOutgoing && st === 'return_in_transit') return 'Receive Back →';
+                              return 'Open Details →';
+                            })()}
                           </button>
                         </td>
                       </tr>

@@ -10,6 +10,17 @@ import { Card3D, StatusBadge, Button3D } from '../styles/emotion';
 import { PageMotion } from '../components/common/PageMotion';
 import { motion } from 'motion/react';
 
+const TransferInfoRow: React.FC<{ label: string; value?: string; note?: string | null; warn?: boolean }> = ({ label, value, note, warn }) => {
+  if (!value) return null;
+  return (
+    <div>
+      <dt className="text-xs text-[#5f6b7a]">{label}</dt>
+      <dd className={`font-semibold ${warn ? 'text-[#b91c1c]' : 'text-[#1b1f24]'}`}>{value}</dd>
+      {note ? <dd className="text-xs text-[#5f6b7a] mt-0.5">Note: {note}</dd> : null}
+    </div>
+  );
+};
+
 export const EntryDetailPage: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const [searchParams] = useSearchParams();
@@ -204,7 +215,10 @@ export const EntryDetailPage: React.FC = () => {
         throw new Error(d.error || 'Failed to dispatch return');
       }
       const updated = await res.json();
-      setEntry(updated);
+      // Server may answer with the gate-pass record; always reload the full entry.
+      const freshRes = await fetch(`/api/entries/${entry.code}`);
+      const fresh = freshRes.ok ? await freshRes.json() : null;
+      setEntry(fresh?.entry || (updated?.at ? updated : entry));
       setIsReturnModalOpen(false);
     } catch (err: any) {
       alert(err.message || 'Error dispatching return');
@@ -240,7 +254,9 @@ export const EntryDetailPage: React.FC = () => {
         throw new Error(d.error || 'Failed to receive returned material');
       }
       const updated = await res.json();
-      setEntry(updated);
+      const freshRes = await fetch(`/api/entries/${entry.code}`);
+      const fresh = freshRes.ok ? await freshRes.json() : null;
+      setEntry(fresh?.entry || (updated?.at ? updated : entry));
       setIsReceiveReturnModalOpen(false);
     } catch (err: any) {
       alert(err.message || 'Error receiving return');
@@ -440,6 +456,18 @@ export const EntryDetailPage: React.FC = () => {
     entry.expected_return &&
     entry.expected_return < new Date().toISOString().slice(0, 10);
 
+  // ---- Which side of an inter-branch transfer is the logged-in user on? ----
+  const normLoc = (v?: string | null) => (v || '').trim().toLowerCase();
+  const isTransfer =
+    entry.movement_type === 'Inter-Branch Transfer' ||
+    entry.movement_type === 'Inter-Location Transfer' ||
+    !!entry.inter_branch_details;
+  const viewerIsAdmin = user?.role === 'admin';
+  const isReceiverSide = isTransfer && (viewerIsAdmin || normLoc(user?.location) === normLoc(entry.to_branch || entry.party));
+  const isSenderSide = isTransfer && (viewerIsAdmin || normLoc(user?.location) === normLoc(entry.from_branch || entry.location));
+  const viewerIsDestinationOnly = isTransfer && !viewerIsAdmin && isReceiverSide && !isSenderSide;
+  const viewerIsOriginOnly = isTransfer && !viewerIsAdmin && isSenderSide && !isReceiverSide;
+
   return (
     <PageMotion className="w-full space-y-5 pb-16">
       {/* Banner on successful save */}
@@ -497,22 +525,22 @@ export const EntryDetailPage: React.FC = () => {
                     <span>Purchaser Hand-Carried (دستی آمد)</span>
                   </span>
                 )}
-                {entry.movement_type === 'Inter-Branch Transfer' && (
+                {isTransfer && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-md text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
                     <span>🏢</span>
-                    <span>Inter-Branch Transfer: {entry.from_branch || entry.location} ➔ {entry.to_branch || entry.party}</span>
+                    <span>Inter-Branch Transfer: {entry.from_branch || entry.location} ➔ {entry.to_branch || entry.party}{viewerIsDestinationOnly ? ' · INCOMING FOR YOU' : viewerIsOriginOnly ? ' · SENT BY YOU' : ''}</span>
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-1.5">
-                <StatusBadge variant={isIn ? 'in' : 'out'}>
-                  {isIn ? 'IN ⬇' : 'OUT ⬆'}
+                <StatusBadge variant={isIn || viewerIsDestinationOnly ? 'in' : 'out'}>
+                  {viewerIsDestinationOnly ? 'INCOMING ⬇' : isIn ? 'IN ⬇' : 'OUT ⬆'}
                 </StatusBadge>
                 {isCancelled ? (
                   <StatusBadge variant="mut">CANCELLED</StatusBadge>
-                ) : entry.movement_type === 'Inter-Branch Transfer' ? (
+                ) : isTransfer ? (
                   entry.inter_branch_details?.status === 'in_transit' ? (
-                    <span className="px-2.5 py-1 rounded-md text-xs font-black bg-amber-500 text-white animate-pulse">
+                    <span className="px-2.5 py-1 rounded-md text-xs font-black bg-amber-500 text-white">
                       🚚 IN TRANSIT
                     </span>
                   ) : entry.inter_branch_details?.status === 'pending_return' ? (
@@ -520,7 +548,7 @@ export const EntryDetailPage: React.FC = () => {
                       ⏳ PENDING RETURN
                     </span>
                   ) : entry.inter_branch_details?.status === 'return_in_transit' ? (
-                    <span className="px-2.5 py-1 rounded-md text-xs font-black bg-indigo-600 text-white animate-pulse">
+                    <span className="px-2.5 py-1 rounded-md text-xs font-black bg-indigo-600 text-white">
                       🔄 RETURN IN TRANSIT
                     </span>
                   ) : (
@@ -615,31 +643,72 @@ export const EntryDetailPage: React.FC = () => {
               )}
 
               {/* Inter-Branch Transfer Lifecycle Card */}
-              {entry.movement_type === 'Inter-Branch Transfer' ? (
-                <div className="sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/60 border-2 border-blue-300 space-y-4">
+              {isTransfer ? (
+                <div className="sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-white border border-[#dde1e6] border-t-4 border-t-[#4f46e5] space-y-4">
                   {/* Header Banner */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-200 pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#dde1e6] pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">🏢</span>
                       <div>
-                        <h4 className="font-extrabold text-sm text-blue-950 uppercase tracking-wide">
-                          Inter-Branch Transfer Lifecycle
-                        </h4>
-                        <p className="text-xs text-blue-800">
-                          Transfer from <strong className="text-blue-950">{entry.from_branch || entry.location}</strong> ➔ <strong className="text-blue-950">{entry.to_branch || entry.party}</strong>
+                        <h4 className="font-bold text-base text-[#1b1f24]">Branch transfer</h4>
+                        <p className="text-sm text-[#344054]">
+                          <strong>{entry.from_branch || entry.location}</strong> ➔ <strong>{entry.to_branch || entry.party}</strong>
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-1 rounded-md text-xs font-black uppercase ${
+                      <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
                         entry.returnable
                           ? 'bg-amber-100 text-amber-900 border border-amber-300'
                           : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                       }`}>
-                        {entry.returnable ? '🔄 Returnable Transfer' : '📦 Permanent / Non-Returnable'}
+                        {entry.returnable ? 'Returnable' : 'Not returnable'}
                       </span>
                     </div>
                   </div>
+
+
+                  {/* Who, when, what */}
+                  {(() => {
+                    const d = entry.inter_branch_details;
+                    const toName = entry.to_branch || entry.party;
+                    const fromName = entry.from_branch || entry.location;
+                    const hand = !entry.vehicle_no || entry.vehicle_no.toLowerCase() === 'hand carried';
+                    const overdueBack = !!(entry.returnable && entry.expected_return && d?.status !== 'completed' && entry.expected_return < new Date().toISOString().slice(0, 10));
+                    return (
+                      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                        <TransferInfoRow label="Sent by" value={`${d?.dispatched_guard || entry.guard_name || '-'} · ${(d?.dispatched_at || entry.at || '').slice(0, 16)}`} />
+                        <TransferInfoRow
+                          label="Vehicle and driver"
+                          value={[hand ? 'By hand' : `${entry.vehicle_no}${entry.vehicle_type ? ` (${entry.vehicle_type})` : ''}`, entry.driver].filter(Boolean).join(' · ')}
+                        />
+                        <TransferInfoRow label="Document" value={[entry.doc_type, entry.doc_no ? `#${entry.doc_no}` : ''].filter(Boolean).join(' ')} />
+                        {entry.returnable && (
+                          <TransferInfoRow label="Expected back" value={entry.expected_return ? `${entry.expected_return}${overdueBack ? ' (overdue)' : ''}` : 'Date not set'} warn={overdueBack} />
+                        )}
+                        {d?.destination_received_at && (
+                          <TransferInfoRow
+                            label={`Received at ${toName}`}
+                            value={`${d.destination_received_guard || '-'} · ${d.destination_received_at.slice(0, 16)}${d.destination_received_gate ? ` · ${d.destination_received_gate}` : ''}`}
+                            note={d.destination_receipt_remarks}
+                          />
+                        )}
+                        {d?.return_dispatched_at && (
+                          <TransferInfoRow
+                            label="Sent back"
+                            value={[`${d.return_dispatched_guard || d.return_by || '-'} · ${d.return_dispatched_at.slice(0, 16)}`, d.return_vehicle_no, d.return_driver].filter(Boolean).join(' · ')}
+                            note={d.return_remarks}
+                          />
+                        )}
+                        {d?.origin_received_at && (
+                          <TransferInfoRow
+                            label={`Back at ${fromName}`}
+                            value={`${d.origin_received_guard || '-'} · ${d.origin_received_at.slice(0, 16)}`}
+                            note={d.origin_receipt_remarks}
+                          />
+                        )}
+                      </dl>
+                    );
+                  })()}
 
                   {/* 4-Step Visual Progress Bar */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -655,7 +724,7 @@ export const EntryDetailPage: React.FC = () => {
                         From: {entry.from_branch || entry.location}
                       </div>
                       <div className="font-mono text-[10px] text-slate-500">
-                        {entry.at.slice(5, 16)}
+                        {(entry.at || '').slice(5, 16)}
                       </div>
                     </div>
 
@@ -664,7 +733,7 @@ export const EntryDetailPage: React.FC = () => {
                       entry.inter_branch_details?.destination_received_at
                         ? 'bg-white border-blue-300 text-blue-950 shadow-xs'
                         : entry.inter_branch_details?.status === 'in_transit'
-                        ? 'bg-amber-50 border-amber-400 text-amber-900 animate-pulse'
+                        ? 'bg-amber-50 border-amber-400 text-amber-900'
                         : 'bg-slate-100 border-slate-200 text-slate-400'
                     }`}>
                       <div className="font-bold flex items-center justify-between">
@@ -726,9 +795,7 @@ export const EntryDetailPage: React.FC = () => {
                   {entry.returnable && entry.inter_branch_details?.items_tracking && (
                     <div className="bg-white rounded-xl border border-blue-200 p-3 space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-1">
-                        <span className="font-bold text-xs text-blue-950 uppercase tracking-wide">
-                          Material Item Status & Partial Return Tracking
-                        </span>
+                        <span className="font-bold text-sm text-[#1b1f24]">Items sent, received and returned</span>
                         {entry.inter_branch_details.destination_received_at && (
                           <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
                             {Math.max(0, Math.floor((new Date().getTime() - new Date(entry.inter_branch_details.destination_received_at).getTime()) / (1000 * 60 * 60 * 24)))} days since destination receipt
@@ -777,7 +844,7 @@ export const EntryDetailPage: React.FC = () => {
                   {/* Contextual Action Buttons */}
                   <div className="pt-2 flex flex-wrap gap-2.5 items-center">
                     {/* Action 1: Destination Acknowledge Receipt */}
-                    {entry.inter_branch_details?.status === 'in_transit' && (
+                    {entry.inter_branch_details?.status === 'in_transit' && isReceiverSide && (
                       <Button3D
                         type="button"
                         variant="in"
@@ -790,7 +857,7 @@ export const EntryDetailPage: React.FC = () => {
                     )}
 
                     {/* Action 2: Destination Return Material */}
-                    {entry.returnable && entry.inter_branch_details?.status === 'pending_return' && (
+                    {entry.returnable && entry.inter_branch_details?.status === 'pending_return' && isReceiverSide && (
                       <Button3D
                         type="button"
                         variant="out"
@@ -803,7 +870,7 @@ export const EntryDetailPage: React.FC = () => {
                     )}
 
                     {/* Action 3: Origin Receive Returned Material Back */}
-                    {entry.returnable && entry.inter_branch_details?.status === 'return_in_transit' && (
+                    {entry.returnable && entry.inter_branch_details?.status === 'return_in_transit' && isSenderSide && (
                       <Button3D
                         type="button"
                         variant="in"
@@ -815,6 +882,21 @@ export const EntryDetailPage: React.FC = () => {
                       </Button3D>
                     )}
 
+                    {entry.inter_branch_details?.status === 'in_transit' && !isReceiverSide && (
+                      <div className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-2 rounded-lg border border-amber-300">
+                        ⏳ Waiting for {entry.to_branch || 'the destination branch'} to receive this material.
+                      </div>
+                    )}
+                    {entry.returnable && entry.inter_branch_details?.status === 'pending_return' && !isReceiverSide && (
+                      <div className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-2 rounded-lg border border-amber-300">
+                        ⏳ Material is at {entry.to_branch || 'the destination branch'}. Waiting for them to send it back.
+                      </div>
+                    )}
+                    {entry.returnable && entry.inter_branch_details?.status === 'return_in_transit' && !isSenderSide && (
+                      <div className="text-xs font-bold text-indigo-900 bg-indigo-100 px-3 py-2 rounded-lg border border-indigo-300">
+                        🔄 Return sent. Waiting for {entry.from_branch || entry.location || 'the sending branch'} to confirm it arrived back.
+                      </div>
+                    )}
                     {entry.inter_branch_details?.status === 'completed' && (
                       <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/90 px-3 py-1.5 rounded-lg border border-emerald-300">
                         <span>✔</span>

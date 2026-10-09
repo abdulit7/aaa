@@ -51,7 +51,7 @@ export const MaterialOutPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryLocation = searchParams.get('location');
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { settings } = useSettings();
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -408,57 +408,34 @@ export const MaterialOutPage: React.FC = () => {
         onChange={handleCaptureImage}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dde1e6] pb-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-[#1d4ed8] flex items-center gap-2">
-          <span>⬆</span>
-          <span>Material OUT</span>
-        </h1>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">Dispatch Facility:</span>
-          <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-300 font-bold text-xs flex items-center gap-1.5 shadow-xs">
-            <span>📍</span>
-            <span>{location}</span>
-          </span>
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#dde1e6] pb-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1d4ed8]">Material out</h1>
+          <p className="text-sm text-[#5f6b7a] mt-0.5">
+            Dispatching from <strong className="text-[#1b1f24]">{location}</strong>
+          </p>
         </div>
-      </div>
-
-      {/* Location-specific banner */}
-      <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-blue-900">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center text-xl shrink-0">
-            🏢
+        {isAdmin && (
+          <div className="gm-fields flex items-center gap-2">
+            <label htmlFor="out-branch" className="text-sm font-medium text-[#344054]">Branch</label>
+            <select
+              id="out-branch"
+              value={location}
+              onChange={e => {
+                const newLoc = e.target.value;
+                setLocation(newLoc);
+                setFromBranch(newLoc);
+                const other = activeBranches.find(b => b.trim().toLowerCase() !== newLoc.trim().toLowerCase()) || 'Kamonki';
+                setToBranch(other);
+              }}
+              className="px-3 bg-white border border-[#c5ccd4] rounded-lg font-semibold cursor-pointer"
+            >
+              {activeBranches.map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
           </div>
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-blue-200">
-              {queryLocation ? 'Location Material OUT Dispatch Form' : 'Active Facility Dispatch Point'}
-            </div>
-            <div className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-              <span>{location}</span>
-              <span className="text-[11px] font-semibold bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded border border-emerald-400/40">
-                Live Terminal
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-blue-200 font-semibold whitespace-nowrap">Switch Location:</label>
-          <select
-            value={location}
-            onChange={e => {
-              const newLoc = e.target.value;
-              setLocation(newLoc);
-              setFromBranch(newLoc);
-              const other = activeBranches.find(b => b.trim().toLowerCase() !== newLoc.trim().toLowerCase()) || 'Kamonki';
-              setToBranch(other);
-            }}
-            className="bg-white/20 hover:bg-white/25 text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-white/30 focus:outline-hidden focus:bg-slate-900 cursor-pointer"
-          >
-            {activeBranches.map(b => (
-              <option key={b} value={b} className="text-slate-900">{b}</option>
-            ))}
-          </select>
-        </div>
+        )}
       </div>
 
       {errorMessage && (
@@ -467,22 +444,22 @@ export const MaterialOutPage: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="gm-form space-y-4">
         {/* Main Entry Details Card */}
         <Card3D variant="out" className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Movement Type Section */}
-          <div className="p-3.5 sm:p-4 rounded-xl border-2 border-blue-200 bg-blue-50/70 space-y-3">
+          <div className="p-3.5 sm:p-4 rounded-xl border border-[#dde1e6] bg-[#f6f8fa] space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
               <div>
-                <label className="form-label text-xs sm:text-sm font-bold text-blue-950 flex items-center gap-1.5">
-                  <span>🚛</span>
-                  <span>Movement Type (نقل و حرکت کی قسم)</span>
+                <label className="form-label flex items-baseline gap-1.5">
+                  <span>Movement type</span>
+                  <span className="font-normal text-xs text-[#5f6b7a]">نقل و حرکت کی قسم</span>
                   <span className="text-[#b91c1c]">*</span>
                 </label>
                 <select
                   value={movementType}
                   onChange={e => handleMovementTypeChange(e.target.value as MovementType)}
-                  className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border-2 border-blue-400 rounded-lg focus:border-blue-600 focus:outline-hidden min-h-[46px] sm:min-h-[38px] font-bold text-slate-900 shadow-xs"
+                  className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg font-semibold text-[#1b1f24]"
                 >
                   {MOVEMENT_TYPES.map(m => (
                     <option key={m} value={m}>{m}</option>
@@ -494,23 +471,23 @@ export const MaterialOutPage: React.FC = () => {
               {(movementType === 'Inter-Location Transfer' || movementType === 'Inter-Branch Transfer') ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="form-label text-xs font-semibold text-slate-700 flex items-center justify-between">
-                      <span>From Location (روانہ کرنے کا مقام)</span>
-                      <span className="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">Auto · Current Location</span>
+                    <label className="form-label flex items-baseline gap-1.5">
+                      <span>From</span>
+                      <span className="font-normal text-xs text-[#5f6b7a]">روانہ کرنے کا مقام</span>
                     </label>
                     <input
                       type="text"
                       readOnly
                       disabled
                       value={fromBranch}
-                      className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-100 border border-slate-300 rounded-lg font-bold text-slate-800 cursor-not-allowed min-h-[38px]"
+                      className="w-full px-3.5 bg-slate-100 border border-slate-300 rounded-lg font-semibold text-slate-800 cursor-not-allowed"
                     />
                   </div>
 
                   <div>
-                    <label className="form-label text-xs font-bold text-blue-950 flex items-center justify-between">
-                      <span>To Location (منزل / وصول کنندہ مقام) <span className="text-[#b91c1c]">*</span></span>
-                      <span className="text-[10px] text-blue-600 font-semibold">Different Location</span>
+                    <label className="form-label flex items-baseline gap-1.5">
+                      <span>To <span className="text-[#b91c1c]">*</span></span>
+                      <span className="font-normal text-xs text-[#5f6b7a]">منزل / وصول کنندہ مقام</span>
                     </label>
                     <select
                       value={toBranch}
@@ -520,50 +497,28 @@ export const MaterialOutPage: React.FC = () => {
                         setToBranch(val);
                         setParty(val);
                       }}
-                      className="w-full px-3 py-2 text-xs sm:text-sm bg-white border-2 border-blue-500 rounded-lg font-bold text-blue-900 focus:outline-hidden min-h-[38px]"
+                      className="w-full px-3.5 bg-white border border-[#c5ccd4] rounded-lg font-semibold text-[#1b1f24]"
                     >
                       {activeBranches
                         .filter(b => b.trim().toLowerCase() !== fromBranch.trim().toLowerCase())
                         .map(b => (
-                          <option key={b} value={b}>📍 {b}</option>
+                          <option key={b} value={b}>{b}</option>
                         ))}
                     </select>
                   </div>
                 </div>
-              ) : (
-                <div className="text-xs text-blue-800 bg-white/70 p-2.5 rounded-lg border border-blue-100 hidden sm:block">
-                  {movementType === 'Repair / Maintenance' && (
-                    <span>🔧 <strong>Repair / Maintenance:</strong> Dispatched to outside workshop / vendor. Check <em>Returnable Material</em> below to track return lifecycle.</span>
-                  )}
-                  {movementType === 'External / Supplier' && (
-                    <span>🏢 <strong>External / Supplier:</strong> Normal material outward dispatch to vendor or partner.</span>
-                  )}
-                  {movementType === 'Customer / Sale' && (
-                    <span>💼 <strong>Customer / Sale:</strong> Finished goods dispatch to customer.</span>
-                  )}
-                  {movementType === 'Other' && (
-                    <span>📦 <strong>Other Movement:</strong> General material movement outside premises.</span>
-                  )}
-                </div>
-              )}
+              ) : null}
             </div>
 
             {(movementType === 'Inter-Location Transfer' || movementType === 'Inter-Branch Transfer') && (
-              <div className="text-xs text-blue-900 bg-white/90 p-2.5 rounded-lg border border-blue-200 space-y-1">
-                <div className="flex items-center gap-2 font-bold text-blue-950">
-                  <span>🔔</span>
-                  <span>Automatic Location Notification Enabled</span>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Upon dispatch, <strong>{toBranch}</strong> security & managers will immediately receive an automated inward notification and gate pass tracking.
-                  {returnable
-                    ? ' Since material is RETURNABLE, it will remain in PENDING RETURN status at destination until returned back.'
-                    : ' Non-returnable transfer will automatically mark COMPLETED upon destination receipt verification.'}
-                </p>
-              </div>
+              <p className="text-sm text-[#344054]">
+                <strong>{toBranch}</strong> is notified as soon as you save.{' '}
+                {returnable ? 'You confirm here when the material comes back.' : 'The transfer completes when they confirm receipt.'}
+              </p>
             )}
           </div>
 
+          <div className="gm-section gm-out">Entry details</div>
           {/* Top Row: Auto-Generated Sequential Entry Code (Read-Only) & Manual Guard Name */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
@@ -609,17 +564,19 @@ export const MaterialOutPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="gm-section gm-out">Party and vehicle</div>
           {/* Party & Vehicle Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            {!(movementType === 'Inter-Location Transfer' || movementType === 'Inter-Branch Transfer') && (
             <div>
               <label className="form-label">
                 {movementType === 'Repair / Maintenance'
-                  ? 'Dispatched To / Repair Vendor'
+                  ? 'Repair vendor or workshop'
                   : movementType === 'Inter-Branch Transfer'
                   ? 'Destination Branch'
                   : movementType === 'Customer / Sale'
-                  ? 'Customer / Sale Recipient'
-                  : 'Recipient / Dispatched To'} <span className="text-[#b91c1c]">*</span>
+                  ? 'Customer'
+                  : 'Dispatched to'} <span className="text-[#b91c1c]">*</span>
               </label>
               <input
                 type="text"
@@ -637,6 +594,7 @@ export const MaterialOutPage: React.FC = () => {
                 className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg focus:border-[#1d4ed8] focus:outline-hidden min-h-[46px] sm:min-h-[38px] disabled:bg-slate-100 disabled:font-bold disabled:text-blue-950"
               />
             </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -669,40 +627,41 @@ export const MaterialOutPage: React.FC = () => {
           </div>
 
           {/* Returnable Toggle Box */}
-          <div className="p-3.5 sm:p-4 rounded-xl border border-amber-300 bg-amber-50/70 space-y-3">
+          <div className="p-3.5 sm:p-4 rounded-xl border border-[#dde1e6] bg-white space-y-3">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="out-returnable-toggle"
                 checked={returnable}
                 onChange={e => setReturnable(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                className="rounded border-gray-300 text-[#d97706] focus:ring-amber-500"
               />
-              <label htmlFor="out-returnable-toggle" className="text-sm font-bold text-amber-900 cursor-pointer">
-                🔄 Returnable Material (Item will come back to factory)
+              <label htmlFor="out-returnable-toggle" className="text-sm font-semibold text-[#1b1f24] cursor-pointer">
+                This material will come back (returnable)
               </label>
             </div>
 
             {returnable && (
-              <div className="pt-2 border-t border-amber-200">
-                <label className="form-label text-amber-950">
-                  Expected Return Date <span className="text-[#b91c1c]">*</span>
+              <div className="pt-3 border-t border-[#dde1e6]">
+                <label className="form-label">
+                  Expected return date <span className="text-[#b91c1c]">*</span>
                 </label>
                 <input
                   type="date"
                   required={returnable}
                   value={expectedReturn}
                   onChange={e => setExpectedReturn(e.target.value)}
-                  className="w-full sm:w-64 px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-amber-300 rounded-lg font-mono min-h-[46px] sm:min-h-[38px]"
+                  className="w-full sm:w-64 px-3.5 bg-white border border-[#c5ccd4] rounded-lg font-mono"
                 />
               </div>
             )}
           </div>
 
+          <div className="gm-section gm-out">Driver and documents</div>
           {/* Driver & Document Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="form-label">Driver Name</label>
+              <label className="form-label">Driver name</label>
               <input
                 type="text"
                 placeholder="Driver full name"
@@ -713,7 +672,7 @@ export const MaterialOutPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="form-label">Driver CNIC / Mobile</label>
+              <label className="form-label">Driver CNIC or mobile</label>
               <input
                 type="text"
                 placeholder="35201-xxxxxxx-x"
@@ -737,48 +696,12 @@ export const MaterialOutPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="form-label">Gate Pass / Challan No</label>
+              <label className="form-label">Gate pass or challan no</label>
               <input
                 type="text"
                 placeholder="Pass or Challan No"
                 value={docNo}
                 onChange={e => setDocNo(e.target.value)}
-                className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg font-mono min-h-[46px] sm:min-h-[38px]"
-              />
-            </div>
-          </div>
-
-          {/* Authorised By, Department, PO */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="form-label">Authorised By (Manager / HOD)</label>
-              <input
-                type="text"
-                placeholder="e.g. Maintenance Manager Engr. Bilal"
-                value={authorisedBy}
-                onChange={e => setAuthorisedBy(e.target.value)}
-                className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg min-h-[46px] sm:min-h-[38px]"
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Originating Department</label>
-              <input
-                type="text"
-                placeholder="e.g. Engineering & Maintenance"
-                value={dept}
-                onChange={e => setDept(e.target.value)}
-                className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg min-h-[46px] sm:min-h-[38px]"
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Work Order / PO No</label>
-              <input
-                type="text"
-                placeholder="e.g. WO-2026-44"
-                value={poNo}
-                onChange={e => setPoNo(e.target.value)}
                 className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg font-mono min-h-[46px] sm:min-h-[38px]"
               />
             </div>
@@ -918,10 +841,64 @@ export const MaterialOutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Weight, Packages, Person, Remarks */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-[#dde1e6]">
+          <div>
+            <label className="form-label">Remarks</label>
+            <input
+              type="text"
+              placeholder="e.g. Motor armature rewinding under warranty"
+              value={remarks}
+              onChange={e => setRemarks(e.target.value)}
+              className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg min-h-[46px] sm:min-h-[38px]"
+            />
+          </div>
+
+          <details className="group rounded-xl border border-[#dde1e6] bg-white">
+            <summary className="flex cursor-pointer select-none list-none items-center justify-between gap-3 px-4 py-3.5 font-semibold text-[#1b1f24]">
+              <span>
+                More details <span className="font-normal text-sm text-[#5f6b7a]">optional: approval, weight, packages</span>
+              </span>
+              <span className="text-[#5f6b7a] transition-transform group-open:rotate-180" aria-hidden>▾</span>
+            </summary>
+            <div className="space-y-4 px-4 pb-4">
+          {/* Authorised By, Department, PO */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="form-label">Total Weight (KG)</label>
+              <label className="form-label">Authorised by (manager or HOD)</label>
+              <input
+                type="text"
+                placeholder="e.g. Maintenance Manager Engr. Bilal"
+                value={authorisedBy}
+                onChange={e => setAuthorisedBy(e.target.value)}
+                className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg min-h-[46px] sm:min-h-[38px]"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Department</label>
+              <input
+                type="text"
+                placeholder="e.g. Engineering & Maintenance"
+                value={dept}
+                onChange={e => setDept(e.target.value)}
+                className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg min-h-[46px] sm:min-h-[38px]"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Work order or PO no</label>
+              <input
+                type="text"
+                placeholder="e.g. WO-2026-44"
+                value={poNo}
+                onChange={e => setPoNo(e.target.value)}
+                className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg font-mono min-h-[46px] sm:min-h-[38px]"
+              />
+            </div>
+          </div>
+          {/* Weight, Packages, Person, Remarks */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="form-label">Total weight (kg)</label>
               <input
                 type="number"
                 inputMode="decimal"
@@ -932,7 +909,7 @@ export const MaterialOutPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="form-label">Packages Count</label>
+              <label className="form-label">Packages</label>
               <input
                 type="number"
                 value={packages}
@@ -942,7 +919,7 @@ export const MaterialOutPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="form-label">Handed Over By (Person)</label>
+              <label className="form-label">Handed over by</label>
               <input
                 type="text"
                 placeholder="e.g. Engr. Bilal Maintenance"
@@ -952,27 +929,18 @@ export const MaterialOutPage: React.FC = () => {
               />
             </div>
           </div>
-
-          <div>
-            <label className="form-label">Remarks / Gate Note</label>
-            <input
-              type="text"
-              placeholder="e.g. Motor armature rewinding under warranty"
-              value={remarks}
-              onChange={e => setRemarks(e.target.value)}
-              className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#c5ccd4] rounded-lg min-h-[46px] sm:min-h-[38px]"
-            />
-          </div>
+            </div>
+          </details>
         </Card3D>
 
         {/* =========================================================================
             CAPTURE IMAGE SECTION (PLACED ONLY DIRECTLY ABOVE SAVE BUTTON IN FORM)
             ========================================================================= */}
-        <Card3D className="p-4 sm:p-5 space-y-3 bg-white border-2 border-dashed border-[#1d4ed8]/30">
+        <Card3D className="p-4 sm:p-5 space-y-3 bg-white border border-dashed border-[#b9c2cc]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="font-bold text-sm sm:text-base text-[#1b1f24] flex items-center gap-2">
               <span>📷</span>
-              <span>Capture Images</span>
+              <span>Photos</span>
               {attachedPhotos.length > 0 && (
                 <span className="text-xs bg-[#1d4ed8] text-white px-2 py-0.5 rounded-full font-mono">
                   {attachedPhotos.length} photo{attachedPhotos.length > 1 ? 's' : ''}
@@ -988,7 +956,7 @@ export const MaterialOutPage: React.FC = () => {
               className="font-bold text-[#1d4ed8] border-[#1d4ed8] flex items-center justify-center gap-2 py-3"
             >
               <span>📷</span>
-              <span>Capture Image from Camera</span>
+              <span>Take photo</span>
             </Button3D>
           </div>
 
@@ -1025,20 +993,20 @@ export const MaterialOutPage: React.FC = () => {
             className="h-4 w-4 rounded border-gray-300 text-[#1d4ed8] focus:ring-[#1d4ed8]"
           />
           <label htmlFor="out-auto-print" className="cursor-pointer font-semibold">
-            🖨️ Automatically print gate pass label upon saving
+            Print the gate pass after saving
           </label>
         </div>
 
         {/* Big 3D Save Button */}
-        <motion.div whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.99 }}>
+        <motion.div whileTap={{ scale: 0.99 }}>
           <Button3D
             type="submit"
             variant="out"
             size="xl"
             disabled={isSubmitting}
-            className="w-full font-extrabold text-base sm:text-lg py-4"
+            className="w-full font-bold text-base sm:text-lg py-4"
           >
-            {isSubmitting ? 'SAVING OUTWARD ENTRY...' : '✔ SAVE OUTWARD ENTRY'}
+            {isSubmitting ? 'Saving…' : (movementType === 'Inter-Location Transfer' || movementType === 'Inter-Branch Transfer') ? `Save and notify ${toBranch}` : 'Save outward entry'}
           </Button3D>
         </motion.div>
       </form>
